@@ -31,10 +31,10 @@ Este projeto é um RPA em Python que acessa o site (https://precos-de-produtos.n
 pip install selenium 
 pip install selenium pyautogui
 
-## Recomendo que Cria um amabiente para insalar as Bibliotecas
+## Recomendo que Cria um ambiente para insalar as Bibliotecas
 
-- bash
+## bash
 
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
+- python -m venv venv
+- venv\Scripts\activate
+- pip install -r requirements.txt
