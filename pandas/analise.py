@@ -7,21 +7,23 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from comando_padrao import AutomacaoPadrao
+from selenium.webdriver.support.ui import Select
+
 from time import sleep
 
 class AnaliseDados(AutomacaoPadrao):
     def __init__(self):
         self.driver = webdriver.Firefox()
-        
 
     def analise_dados(self):
         try:
+            
             self.driver.get('https://cadastro-produtos-devaprender.netlify.app/index.html')
+
             sleep(2)
             planilha = pd.read_excel('produtos_ficticios.xlsx')
             print(planilha.head()) 
 
-            contador = 0
             #Para Percorre linha por linha 
             for index, linha in planilha.iterrows():
 
@@ -52,15 +54,7 @@ class AnaliseDados(AutomacaoPadrao):
                 #Botão Proximo
                 self.clica_elemento(xpath_elemento='//button[contains(text(),"Próximo")]')
                 
-                self._parte_dois_()
 
-        except Exception as e:
-            print(f"Ocorreu um Erro na navegação a primeira parte: {e}")
-            self.fechar_navegador()        
-
-    def _parte_dois_(self, linha):
-        
-        try:    
                 WebDriverWait(self.driver, 30).until(
                     EC.visibility_of_element_located((By.XPATH, '//h2[contains(text(),"Cadastro de Produto - Etapa 2: Detalhes do Produto")]'))
                 )
@@ -77,30 +71,48 @@ class AnaliseDados(AutomacaoPadrao):
                 cor = linha['Cor']
                 self.preenche_campo(xpath_elemento='//input[@id="color"]', valor=cor)
 
-                tamanho = linha['Tamanho']
-                self.clica_elemento(xpath_elemento='//select[@id="size"]')
-                if tamanho == 'Pequeno':
-                    self.clica_elemento(xpath_elemento='')
-
+                tamanho = linha['Tamanho'].strip().capitalize()
+                select_element = self.driver.find_element(By.ID, "size")
+                Select(select_element).select_by_value(tamanho)                
+                
                 material = linha['Material']
-                self.preenche_campo(xpath_elemento='//*[@id="product_name"]', valor=material)
+                self.preenche_campo(xpath_elemento='//*[@id="material"]', valor=material)
+
+                #Botão Proximo
+                self.clica_elemento(xpath_elemento='//button[contains(text(),"Próximo")]')
+
+                WebDriverWait(self.driver, 30).until(
+                    EC.visibility_of_element_located((By.XPATH, '//*[@id="manufacturer"]'))
+                )
 
                 fabricante = linha['Fabricante']
-                self.preenche_campo(xpath_elemento='//*[@id="product_name"]', valor=fabricante)
+                self.preenche_campo(xpath_elemento='//*[@id="manufacturer"]', valor=fabricante)
 
                 pais_origem = linha['País de origem']
-                self.preenche_campo(xpath_elemento='//*[@id="product_name"]', valor=pais_origem)
+                self.preenche_campo(xpath_elemento='//*[@id="country"]', valor=pais_origem)
 
                 observacoes = linha['Observações']
-                self.preenche_campo(xpath_elemento='//*[@id="product_name"]', valor=observacoes)
+                self.preenche_campo(xpath_elemento='//*[@id="remarks"]', valor=observacoes)
 
                 codigo_de_barras = linha['Código de barras']
-                self.preenche_campo(xpath_elemento='//*[@id="product_name"]', valor=codigo_de_barras)
+                self.preenche_campo(xpath_elemento='//*[@id="barcode"]', valor=codigo_de_barras)
 
                 localizacao_no_armazem = linha['Localização no armazém']
-                self.preenche_campo(xpath_elemento='//*[@id="product_name"]', valor=localizacao_no_armazem)
+                self.preenche_campo(xpath_elemento='//*[@id="warehouse_location"]', valor=localizacao_no_armazem)
 
-                contador += 1
+                #Botão Proximo
+                self.clica_elemento(xpath_elemento='//button[contains(text(),"Concluir")]')
+
+                WebDriverWait(self.driver, 10).until(EC.alert_is_present())
+                alert = self.driver.switch_to.alert
+                alert.accept()
+
+                WebDriverWait(self.driver, 30).until(
+                    EC.presence_of_element_located((By.XPATH, '//h2[contains(text(),"Produto cadastrado com sucesso!")]'))
+                )
+
+                #Botão 
+                self.clica_elemento(xpath_elemento='//button[contains(text(),"Adicionar Mais")]')
 
         except Exception as e:
             print("Ocorreu um Erro na navegação")
